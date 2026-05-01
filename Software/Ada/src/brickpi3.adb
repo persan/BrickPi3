@@ -1,41 +1,8 @@
 
 package body BrickPi3 is
    pragma Warnings (Off);
-      package linux_spi_spidev_h is
 
-      SPI_IOC_MAGIC : aliased constant Character :=
-        'k';  --  /usr/include/linux/spi/spidev.h:32
-      --  arg-macro: function SPI_MSGSIZE (N)
-      --    return (((N)*(sizeof (struct spi_ioc_transfer))) < (2 ** _IOC_SIZEBITS)) ? ((N)*(sizeof (struct spi_ioc_transfer))) : 0;
-      --  arg-macro: procedure SPI_IOC_MESSAGE (N)
-      --    _IOW(SPI_IOC_MAGIC, 0, char(SPI_MSGSIZE(N)))
-      --  unsupported macro: SPI_IOC_RD_MODE _IOR(SPI_IOC_MAGIC, 1, __u8)
-      --  unsupported macro: SPI_IOC_WR_MODE _IOW(SPI_IOC_MAGIC, 1, __u8)
-      --  unsupported macro: SPI_IOC_RD_LSB_FIRST _IOR(SPI_IOC_MAGIC, 2, __u8)
-      --  unsupported macro: SPI_IOC_WR_LSB_FIRST _IOW(SPI_IOC_MAGIC, 2, __u8)
-      --  unsupported macro: SPI_IOC_RD_BITS_PER_WORD _IOR(SPI_IOC_MAGIC, 3, __u8)
-      --  unsupported macro: SPI_IOC_WR_BITS_PER_WORD _IOW(SPI_IOC_MAGIC, 3, __u8)
-      --  unsupported macro: SPI_IOC_RD_MAX_SPEED_HZ _IOR(SPI_IOC_MAGIC, 4, __u32)
-      --  unsupported macro: SPI_IOC_WR_MAX_SPEED_HZ _IOW(SPI_IOC_MAGIC, 4, __u32)
-      --  unsupported macro: SPI_IOC_RD_MODE32 _IOR(SPI_IOC_MAGIC, 5, __u32)
-      --  unsupported macro: SPI_IOC_WR_MODE32 _IOW(SPI_IOC_MAGIC, 5, __u32)
 
-      type spi_ioc_transfer is record
-         tx_buf           : aliased Interfaces.Unsigned_64;
-         rx_buf           : aliased Interfaces.Unsigned_64;
-         len              : aliased Interfaces.Unsigned_32;
-         speed_hz         : aliased Interfaces.Unsigned_32;
-         delay_usecs      : aliased Interfaces.Unsigned_16;
-         bits_per_word    : aliased Interfaces.Unsigned_8;
-         cs_change        : aliased Interfaces.Unsigned_8;
-         tx_nbits         : aliased Interfaces.Unsigned_8;
-         rx_nbits         : aliased Interfaces.Unsigned_8;
-         word_delay_usecs : aliased Interfaces.Unsigned_8;
-         pad              : aliased Interfaces.Unsigned_8;
-      end record
-        with Convention => C_Pass_By_Copy;
-
-   end linux_spi_spidev_h;
 
    Active : Boolean := False;
    procedure Initialize (this : in out BrickPi3) is
@@ -87,18 +54,18 @@ package body BrickPi3 is
       pragma Compile_Time_Warning (Standard.True, "spi_setup unimplemented");
       return raise Program_Error with "Unimplemented function spi_setup";
    end spi_setup;
-   --  // Set up SPI. Open the file, and define the configuration.
+   --  -- Set up SPI. Open the file, and define the configuration.
    --  int BrickPi3::spi_setup(){
-   --      spi_file_handle = open(SPIDEV_FILE_NAME, O_RDWR);
+   --      this.spi_file_handle = open(SPIDEV_FILE_NAME, O_RDWR);
    --
    --      if (spi_file_handle < 0){
    --          return ERROR_SPI_FILE;
    --      }
    --
-   --      spi_xfer_struct.cs_change = 0;               // Keep CS activated
-   --      spi_xfer_struct.delay_usecs = 0;             // delay in us
-   --      spi_xfer_struct.speed_hz = SPI_TARGET_SPEED; // speed
-   --      spi_xfer_struct.bits_per_word = 8;           // bites per word 8
+   --      this.spi_xfer_struct.cs_change := 0;               -- Keep CS activated
+   --      this.spi_xfer_struct.delay_usecs := 0;             -- delay in us
+   --      this.spi_xfer_struct.speed_hz := SPI_TARGET_SPEED; -- speed
+   --      this.spi_xfer_struct.bits_per_word := 8;           -- bites per word 8
    --
    --      return ERROR_NONE;
    --  }
@@ -118,13 +85,13 @@ package body BrickPi3 is
       return
       raise Program_Error with "Unimplemented function spi_transfer_array";
    end spi_transfer_array;
-   --  // Transfer length number of bytes. Write from outArray, read to inArray.
+   --  -- Transfer length number of bytes. Write from outArray, read to inArray.
    --  int BrickPi3::spi_transfer_array(uint8_t length, uint8_t *outArray, uint8_t *inArray){
-   --      spi_xfer_struct.len = length;
-   --      spi_xfer_struct.tx_buf = (unsigned long)outArray;
-   --      spi_xfer_struct.rx_buf = (unsigned long)inArray;
+   --      this.spi_xfer_struct.len = length;
+   --      this.spi_xfer_struct.tx_buf = (unsigned long)outArray;
+   --      this.spi_xfer_struct.rx_buf = (unsigned long)inArray;
    --
-   --      if (ioctl(spi_file_handle, SPI_IOC_MESSAGE(1), &spi_xfer_struct) < 0) {
+   --      if (ioctl(spi_file_handle, SPI_IOC_MESSAGE(1), this.spi_xfer_struct'access) < 0) {
    --          return ERROR_SPI_FILE;
    --      }
    --
@@ -156,7 +123,7 @@ package body BrickPi3 is
    begin
       pragma Compile_Time_Warning (Standard.True, "fatal_error unimplemented");
       raise Program_Error with "Unimplemented procedure fatal_error";
-   end fatal_error; --  // Function to call if an error occured that can not be resolved, such as failure to set up SPI
+   end fatal_error; --  -- Function to call if an error occured that can not be resolved, such as failure to set up SPI
    --  void BrickPi3::fatal_error(char *error){
    --      printf(error);
    --      printf("\n");
@@ -175,14 +142,14 @@ package body BrickPi3 is
       return
       raise Program_Error with "Unimplemented function BrickPi3_set_address";
    end BrickPi3_set_address;
-   --  // Set a BrickPi3's address to allow stacking
+   --  -- Set a BrickPi3's address to allow stacking
    --  int BrickPi3::BrickPi3_set_address(int addr, const char *id){
    --      if(addr < 1 || addr > 255){
    --          fatal_error("BrickPi3_set_address error: invalid address. Must be in the range of 1 to 255");
    --          return -1;
    --      }
    --
-   --      spi_array_out[0] = 0;                         // use address 0 so all BrickPi3s will listen, regardless of current address
+   --      spi_array_out[0] = 0;                         -- use address 0 so all BrickPi3s will listen, regardless of current address
    --      spi_array_out[1] = BPSPI_MESSAGE_SET_ADDRESS;
    --      spi_array_out[2] = addr;
    --      for(uint8_t i = 0; i < 16; i++){
@@ -217,7 +184,7 @@ package body BrickPi3 is
    --    value = 0;
    --    spi_array_out[0] = Address;
    --    spi_array_out[1] = msg_type;
-   --    // assign error to the value returned by spi_transfer_array, and if not 0:
+   --    -- assign error to the value returned by spi_transfer_array, and if not 0:
    --    if(int error = spi_transfer_array(6, spi_array_out, spi_array_in)){
    --      return error;
    --    }
@@ -243,7 +210,7 @@ package body BrickPi3 is
    --    value = 0;
    --    spi_array_out[0] = Address;
    --    spi_array_out[1] = msg_type;
-   --    // assign error to the value returned by spi_transfer_array, and if not 0:
+   --    -- assign error to the value returned by spi_transfer_array, and if not 0:
    --    if(int error = spi_transfer_array(8, spi_array_out, spi_array_in)){
    --      return error;
    --    }
@@ -273,7 +240,7 @@ package body BrickPi3 is
    --    }
    --    spi_array_out[0] = Address;
    --    spi_array_out[1] = msg_type;
-   --    // assign error to the value returned by spi_transfer_array, and if not 0:
+   --    -- assign error to the value returned by spi_transfer_array, and if not 0:
    --    if(int error = spi_transfer_array(chars + 4, spi_array_out, spi_array_in)){
    --      return error;
    --    }
@@ -298,7 +265,7 @@ package body BrickPi3 is
    --    char ErrorStr[100];
    --    char str[21];
    --    int error;
-   --    // assign error to the value returned by get_manufacturer, and if not 0:
+   --    -- assign error to the value returned by get_manufacturer, and if not 0:
    --    if(error = get_manufacturer(str)){
    --      if(critical){
    --        fatal_error("detect error: get_manufacturer failed. Perhaps the BrickPi3 is not connected, or the address is incorrect.");
@@ -314,7 +281,7 @@ package body BrickPi3 is
    --      }
    --    }
    --
-   --    // assign error to the value returned by get_board, and if not 0:
+   --    -- assign error to the value returned by get_board, and if not 0:
    --    if(error = get_board(str)){
    --      if(critical){
    --        fatal_error("detect error: get_board failed");
@@ -330,7 +297,7 @@ package body BrickPi3 is
    --      }
    --    }
    --
-   --    // assign error to the value returned by get_version_firmware, and if not 0:
+   --    -- assign error to the value returned by get_version_firmware, and if not 0:
    --    if(error = get_version_firmware(str)){
    --      if(critical){
    --        fatal_error("detect error: get_version_firmware failed");
@@ -380,7 +347,7 @@ package body BrickPi3 is
    end Get_Hardware_Version;
    --  int BrickPi3::get_version_hardware(char *str){
    --    uint32_t value;
-   --    // assign error to the value returned by spi_read_32, and if not 0:
+   --    -- assign error to the value returned by spi_read_32, and if not 0:
    --    if(int error = spi_read_32(BPSPI_MESSAGE_GET_HARDWARE_VERSION, value)){
    --      return error;
    --    }
@@ -401,7 +368,7 @@ package body BrickPi3 is
    end Get_firmware_Version;
    --  int BrickPi3::get_version_firmware(char *str){
    --    uint32_t value;
-   --    // assign error to the value returned by spi_read_32, and if not 0:
+   --    -- assign error to the value returned by spi_read_32, and if not 0:
    --    if(int error = spi_read_32(BPSPI_MESSAGE_GET_FIRMWARE_VERSION, value)){
    --      return error;
    --    }
@@ -420,7 +387,7 @@ package body BrickPi3 is
    --  int BrickPi3::get_id(char *str){
    --    spi_array_out[0] = Address;
    --    spi_array_out[1] = BPSPI_MESSAGE_GET_ID;
-   --    // assign error to the value returned by spi_read_32, and if not 0:
+   --    -- assign error to the value returned by spi_read_32, and if not 0:
    --    if(int error = spi_transfer_array(20, spi_array_out, spi_array_in)){
    --      return error;
    --    }
@@ -699,7 +666,7 @@ package body BrickPi3 is
    --
    --    uint8_t spi_transfer_length;
    --
-   --    // Determine the SPI transaction byte length based on the sensor type
+   --    -- Determine the SPI transaction byte length based on the sensor type
    --    switch(SensorType[port_index]){
    --      case SENSOR_TYPE_TOUCH:
    --      case SENSOR_TYPE_TOUCH_NXT:
@@ -741,36 +708,36 @@ package body BrickPi3 is
    --        spi_transfer_length = 6 + I2CInBytes[port_index];
    --      break;
    --
-   --      // Invalid or unsupported sensor type
+   --      -- Invalid or unsupported sensor type
    --      default:
    --        return SENSOR_STATE_NOT_CONFIGURED;
    --      break;
    --    }
    --
-   --    // Get the sensor value(s), and if error
-   --    // assign error to the value returned by spi_transfer_array, and if not 0:
+   --    -- Get the sensor value(s), and if error
+   --    -- assign error to the value returned by spi_transfer_array, and if not 0:
    --    if(int error = spi_transfer_array(spi_transfer_length, spi_array_out, spi_array_in)){
    --      return error;
    --    }
-   --    // If the fourth byte received is not 0xA5
+   --    -- If the fourth byte received is not 0xA5
    --    if(spi_array_in[3] != 0xA5){
    --      return ERROR_SPI_RESPONSE;
    --    }
-   --    // If the sensor type is not what it should be
+   --    -- If the sensor type is not what it should be
    --    if(!(spi_array_in[4] == SensorType[port_index] || (SensorType[port_index] == SENSOR_TYPE_TOUCH && (spi_array_in[4] == SENSOR_TYPE_TOUCH_NXT || spi_array_in[4] == SENSOR_TYPE_TOUCH_EV3)))){
    --      return ERROR_SENSOR_TYPE_MISMATCH;
    --    }
-   --    // If the sensor value(s) is not valid (still configuring the sensor, or error communicating with the sensor)
+   --    -- If the sensor value(s) is not valid (still configuring the sensor, or error communicating with the sensor)
    --    if(spi_array_in[5] != SENSOR_STATE_VALID_DATA){
    --      return spi_array_in[5];
    --    }
    --
-   --    // Get some commonly used values
+   --    -- Get some commonly used values
    --    uint8_t  raw_value_8 = spi_array_in[6];
    --    uint16_t raw_value_16 = ((spi_array_in[6] << 8) | spi_array_in[7]);
    --    uint16_t raw_value_16_2 = ((spi_array_in[8] << 8) | spi_array_in[9]);
    --
-   --    // For each sensor type, copy the value(s) into the corresponding structure value(s)
+   --    -- For each sensor type, copy the value(s) into the corresponding structure value(s)
    --    if(SensorType[port_index] == SENSOR_TYPE_TOUCH ||
    --       SensorType[port_index] == SENSOR_TYPE_TOUCH_NXT ||
    --       SensorType[port_index] == SENSOR_TYPE_TOUCH_EV3){
@@ -836,7 +803,7 @@ package body BrickPi3 is
    --    }else if(SensorType[port_index] == SENSOR_TYPE_EV3_COLOR_RAW_REFLECTED){
    --      sensor_color_t *Value = (sensor_color_t*)value_ptr;
    --      Value->reflected_red = raw_value_16;
-   --      //Value-> = raw_value_16_2; not sure what this value is
+   --      --Value-> = raw_value_16_2; not sure what this value is
    --    }else if(SensorType[port_index] == SENSOR_TYPE_EV3_GYRO_ABS_DPS){
    --      sensor_gyro_t *Value = (sensor_gyro_t*)value_ptr;
    --      Value->abs = raw_value_16;
@@ -895,7 +862,7 @@ package body BrickPi3 is
    --      Value->reflected_red   = ((spi_array_in[ 6] << 8) | spi_array_in[ 7]);
    --      Value->reflected_green = ((spi_array_in[ 8] << 8) | spi_array_in[ 9]);
    --      Value->reflected_blue  = ((spi_array_in[10] << 8) | spi_array_in[11]);
-   --      //Value-> = ((spi_array_in[12] << 8) | spi_array_in[13]); not sure what this value is
+   --      --Value-> = ((spi_array_in[12] << 8) | spi_array_in[13]); not sure what this value is
    --    }else if(SensorType[port_index] == SENSOR_TYPE_EV3_INFRARED_SEEK){
    --      sensor_infrared_t *Value = (sensor_infrared_t*)value_ptr;
    --      for(uint8_t v = 0; v < 4; v++){
@@ -975,11 +942,11 @@ package body BrickPi3 is
    --    for(uint8_t p = 1; p <= PORT_D; p <<= 1){
    --      if(port & p){
    --        int32_t encoder = 0;
-   --        // assign error to the error value returned by get_motor_encoder, and if not 0:
+   --        -- assign error to the error value returned by get_motor_encoder, and if not 0:
    --        if(int error = get_motor_encoder(p, encoder)){
    --          return error;
    --        }
-   --        // assign error to the error value returned by get_motor_encoder, and if not 0:
+   --        -- assign error to the error value returned by get_motor_encoder, and if not 0:
    --        if(int error = set_motor_position(p, (encoder + position))){
    --          return error;
    --        }
@@ -1073,7 +1040,7 @@ package body BrickPi3 is
    --    }
    --    spi_array_out[0] = Address;
    --    spi_array_out[1] = msg_type;
-   --    // assign error to the value returned by spi_transfer_array, and if not 0:
+   --    -- assign error to the value returned by spi_transfer_array, and if not 0:
    --    if(int error = spi_transfer_array(12, spi_array_out, spi_array_in)){
    --      return error;
    --    }
@@ -1163,7 +1130,7 @@ package body BrickPi3 is
    end reset_motor_encoder;
    --  int BrickPi3::reset_motor_encoder(uint8_t port, int32_t &value){
    --    value = 0;
-   --    // assign error to the error value returned by get_motor_encoder, and if not 0:
+   --    -- assign error to the error value returned by get_motor_encoder, and if not 0:
    --    if(int error = get_motor_encoder(port, value)){
    --      return error;
    --    }
@@ -1187,7 +1154,7 @@ package body BrickPi3 is
    end set_motor_encoder;
    --  int BrickPi3::set_motor_encoder(uint8_t port, int32_t value){
    --    int32_t enc_value = 0;
-   --    // assign error to the error value returned by get_motor_encoder, and if not 0:
+   --    -- assign error to the error value returned by get_motor_encoder, and if not 0:
    --    if(int error = get_motor_encoder(port, enc_value)){
    --      return error;
    --    }

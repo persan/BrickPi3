@@ -12,3 +12,4 @@ gpsauto.cgpr
 b__*
 *main
 *.exe
+*.pyc

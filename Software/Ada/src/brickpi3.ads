@@ -2,6 +2,7 @@ with Ada.Finalization;
 with Ada.Streams;
 with System;
 with Interfaces;
+
 package BrickPi3 is
 
    pragma Elaborate_Body;
@@ -200,50 +201,50 @@ package BrickPi3 is
    --  Get the voltage and return as floating point voltage
 
    function set_sensor_type
-     (this       : in out  BrickPi3;
+     (this       : in out BrickPi3;
       port       : Interfaces.Unsigned_8;
       c_type     : Interfaces.Unsigned_8;
       flags      : Interfaces.Unsigned_16;
       i2c_struct : access i2c_struct_t) return Integer;
 
    function transact_i2c
-     (this       : in out  BrickPi3;
+     (this       : in out BrickPi3;
       port       : Interfaces.Unsigned_8;
       i2c_struct : access i2c_struct_t) return Integer;
 
    function get_sensor
-     (this      : in out  BrickPi3;
+     (this      : in out BrickPi3;
       port      : Interfaces.Unsigned_8;
       value_ptr : System.Address) return Integer;
 
    function set_motor_power
-     (this  : in out  BrickPi3;
+     (this  : in out BrickPi3;
       port  : Interfaces.Unsigned_8;
       power : Interfaces.Integer_8) return Integer;
 
    function set_motor_position
-     (this     : in out  BrickPi3;
+     (this     : in out BrickPi3;
       port     : Interfaces.Unsigned_8;
       position : Interfaces.Integer_32) return Integer;
 
    function set_motor_position_relative
-     (this     : in out  BrickPi3;
+     (this     : in out BrickPi3;
       port     : Interfaces.Unsigned_8;
       position : Interfaces.Integer_32) return Integer;
 
    function set_motor_dps
-     (this : in out  BrickPi3;
+     (this : in out BrickPi3;
       port : Interfaces.Unsigned_8;
       dps  : Interfaces.Integer_16) return Integer;
 
    function set_motor_limits
-     (this  : in out  BrickPi3;
+     (this  : in out BrickPi3;
       port  : Interfaces.Unsigned_8;
       power : Interfaces.Unsigned_8;
       dps   : Interfaces.Unsigned_16) return Integer;
 
    function get_motor_status
-     (this     : in out  BrickPi3;
+     (this     : in out BrickPi3;
       port     : Interfaces.Unsigned_8;
       state    : access Interfaces.Unsigned_8;
       power    : access Interfaces.Integer_8;
@@ -251,70 +252,102 @@ package BrickPi3 is
       dps      : access Interfaces.Integer_16) return Integer;
 
    function offset_motor_encoder
-     (this     : in out  BrickPi3;
+     (this     : in out BrickPi3;
       port     : Interfaces.Unsigned_8;
       position : Interfaces.Integer_32) return Integer;
 
    function reset_motor_encoder
-     (this  : in out  BrickPi3;
+     (this  : in out BrickPi3;
       port  : Interfaces.Unsigned_8;
       value : access Interfaces.Integer_32) return Integer;
 
    function reset_motor_encoder
-     (this : in out  BrickPi3; port : Interfaces.Unsigned_8) return Integer;
+     (this : in out BrickPi3; port : Interfaces.Unsigned_8) return Integer;
 
    function set_motor_encoder
-     (this  : in out  BrickPi3;
+     (this  : in out BrickPi3;
       port  : Interfaces.Unsigned_8;
       value : Interfaces.Integer_32) return Integer;
 
    function get_motor_encoder
-     (this  : in out  BrickPi3;
+     (this  : in out BrickPi3;
       port  : Interfaces.Unsigned_8;
       value : access Interfaces.Integer_32) return Integer;
 
+   function reset_all (this : in out BrickPi3) return Integer;
 
-   function reset_all (this : in out  BrickPi3) return Integer;
-
-   function spi_setup (this : in out  BrickPi3) return Integer;
+   function spi_setup (this : in out BrickPi3) return Integer;
 
    function spi_transfer_array
-     (this     : in out  BrickPi3;
+     (this     : in out BrickPi3;
       length   : Interfaces.Unsigned_8;
       outArray : access Interfaces.Unsigned_8;
       inArray  : access Interfaces.Unsigned_8) return Integer;
 
    function BrickPi3_set_address
-     (this : in out  BrickPi3; addr : Integer; id : String) return Integer;
+     (this : in out BrickPi3; addr : Integer; id : String) return Integer;
 
-   procedure fatal_error (this : in out  BrickPi3; error : String);
+   procedure fatal_error (this : in out BrickPi3; error : String);
 
    function spi_write_8
-     (this     : in out  BrickPi3;
+     (this     : in out BrickPi3;
       msg_type : Interfaces.Unsigned_8;
       value    : Interfaces.Unsigned_8) return Integer;
 
    function spi_read_16
-     (this     : in out  BrickPi3;
+     (this     : in out BrickPi3;
       msg_type : Interfaces.Unsigned_8;
       value    : access Interfaces.Unsigned_16) return Integer;
 
    function spi_read_32
-     (this     : in out  BrickPi3;
+     (this     : in out BrickPi3;
       msg_type : Interfaces.Unsigned_8;
       value    : access Interfaces.Unsigned_32) return Integer;
 
    function spi_read_string
-     (this     : in out  BrickPi3;
+     (this     : in out BrickPi3;
       msg_type : Interfaces.Unsigned_8;
       str      : String;
       chars    : Interfaces.Unsigned_8) return Integer;
 
 private
+   package linux_spi_spidev_h is
 
+      SPI_IOC_MAGIC : aliased constant Character :=
+        'k';  --  /usr/include/linux/spi/spidev.h:32
+      --  arg-macro: function SPI_MSGSIZE (N)
+      --    return (((N)*(sizeof (struct spi_ioc_transfer))) < (2 ** _IOC_SIZEBITS)) ? ((N)*(sizeof (struct spi_ioc_transfer))) : 0;
+      --  arg-macro: procedure SPI_IOC_MESSAGE (N)
+      --    _IOW(SPI_IOC_MAGIC, 0, char(SPI_MSGSIZE(N)))
+      --  unsupported macro: SPI_IOC_RD_MODE _IOR(SPI_IOC_MAGIC, 1, __u8)
+      --  unsupported macro: SPI_IOC_WR_MODE _IOW(SPI_IOC_MAGIC, 1, __u8)
+      --  unsupported macro: SPI_IOC_RD_LSB_FIRST _IOR(SPI_IOC_MAGIC, 2, __u8)
+      --  unsupported macro: SPI_IOC_WR_LSB_FIRST _IOW(SPI_IOC_MAGIC, 2, __u8)
+      --  unsupported macro: SPI_IOC_RD_BITS_PER_WORD _IOR(SPI_IOC_MAGIC, 3, __u8)
+      --  unsupported macro: SPI_IOC_WR_BITS_PER_WORD _IOW(SPI_IOC_MAGIC, 3, __u8)
+      --  unsupported macro: SPI_IOC_RD_MAX_SPEED_HZ _IOR(SPI_IOC_MAGIC, 4, __u32)
+      --  unsupported macro: SPI_IOC_WR_MAX_SPEED_HZ _IOW(SPI_IOC_MAGIC, 4, __u32)
+      --  unsupported macro: SPI_IOC_RD_MODE32 _IOR(SPI_IOC_MAGIC, 5, __u32)
+      --  unsupported macro: SPI_IOC_WR_MODE32 _IOW(SPI_IOC_MAGIC, 5, __u32)
+      type spi_ioc_transfer is record
+         tx_buf           : aliased Interfaces.Unsigned_64 := 0;
+         rx_buf           : aliased Interfaces.Unsigned_64 := 0;
+         len              : aliased Interfaces.Unsigned_32 := 0;
+         speed_hz         : aliased Interfaces.Unsigned_32 := 0;
+         delay_usecs      : aliased Interfaces.Unsigned_16 := 0;
+         bits_per_word    : aliased Interfaces.Unsigned_8 := 0;
+         cs_change        : aliased Interfaces.Unsigned_8 := 0;
+         tx_nbits         : aliased Interfaces.Unsigned_8 := 0;
+         rx_nbits         : aliased Interfaces.Unsigned_8 := 0;
+         word_delay_usecs : aliased Interfaces.Unsigned_8 := 0;
+         pad              : aliased Interfaces.Unsigned_8 := 0;
+      end record
+      with Convention => C_Pass_By_Copy;
+
+   end linux_spi_spidev_h;
    type BrickPi3 is new Ada.Finalization.Limited_Controlled with record
-      null;
+      Spi_Xfer_Struct : Linux_Spi_Spidev_H.spi_ioc_transfer;
    end record;
    procedure Initialize (this : in out BrickPi3);
-   procedure Finalize   (this : in out BrickPi3);
+   procedure Finalize (this : in out BrickPi3);
 end BrickPi3;
