@@ -1,0 +1,6 @@
+with "../brickpi3.gpr";
+project Brickpi3.Examples is
+   for Source_Dirs use ("src/**");
+   for Object_Dir use ".obj";
+   for Exec_Dir use "bin";
+end brickpi3.Examples;
