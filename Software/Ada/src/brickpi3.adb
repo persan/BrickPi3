@@ -1,7 +1,7 @@
-pragma Ada_2012;
 
 package body BrickPi3 is
-   package linux_spi_spidev_h is
+   pragma Warnings (Off);
+      package linux_spi_spidev_h is
 
       SPI_IOC_MAGIC : aliased constant Character :=
         'k';  --  /usr/include/linux/spi/spidev.h:32
@@ -33,9 +33,22 @@ package body BrickPi3 is
          word_delay_usecs : aliased Interfaces.Unsigned_8;
          pad              : aliased Interfaces.Unsigned_8;
       end record
-      with Convention => C_Pass_By_Copy;
+        with Convention => C_Pass_By_Copy;
 
    end linux_spi_spidev_h;
+
+   Active : Boolean := False;
+   procedure Initialize (this : in out BrickPi3) is
+   begin
+      if Active then
+         raise Program_Error with "Only one instance allowed";
+      end if;
+      Active := True;
+   end;
+   procedure Finalize   (this : in out BrickPi3)is
+   begin
+      Active := False;
+   end;
 
    ---------------
    -- get_board --
@@ -103,7 +116,7 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "spi_transfer_array unimplemented");
       return
-        raise Program_Error with "Unimplemented function spi_transfer_array";
+      raise Program_Error with "Unimplemented function spi_transfer_array";
    end spi_transfer_array;
    --  // Transfer length number of bytes. Write from outArray, read to inArray.
    --  int BrickPi3::spi_transfer_array(uint8_t length, uint8_t *outArray, uint8_t *inArray){
@@ -160,7 +173,7 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "BrickPi3_set_address unimplemented");
       return
-        raise Program_Error with "Unimplemented function BrickPi3_set_address";
+      raise Program_Error with "Unimplemented function BrickPi3_set_address";
    end BrickPi3_set_address;
    --  // Set a BrickPi3's address to allow stacking
    --  int BrickPi3::BrickPi3_set_address(int addr, const char *id){
@@ -344,7 +357,7 @@ package body BrickPi3 is
       pragma
         Compile_Time_Warning (Standard.True, "get_manufacturer unimplemented");
       return
-        raise Program_Error with "Unimplemented function get_manufacturer";
+      raise Program_Error with "Unimplemented function get_manufacturer";
    end get_manufacturer;
    --  int BrickPi3::get_manufacturer(char *str){
    --    return spi_read_string(BPSPI_MESSAGE_GET_MANUFACTURER, str);
@@ -363,7 +376,7 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "Get_Hardware_Version unimplemented");
       return
-        raise Program_Error with "Unimplemented function Get_Hardware_Version";
+      raise Program_Error with "Unimplemented function Get_Hardware_Version";
    end Get_Hardware_Version;
    --  int BrickPi3::get_version_hardware(char *str){
    --    uint32_t value;
@@ -384,7 +397,7 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "Get_firmware_Version unimplemented");
       return
-        raise Program_Error with "Unimplemented function Get_firmware_Version";
+      raise Program_Error with "Unimplemented function Get_firmware_Version";
    end Get_firmware_Version;
    --  int BrickPi3::get_version_firmware(char *str){
    --    uint32_t value;
@@ -509,7 +522,7 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "Get_Voltage_Battery unimplemented");
       return
-        raise Program_Error with "Unimplemented function Get_Voltage_Battery";
+      raise Program_Error with "Unimplemented function Get_Voltage_Battery";
    end Get_Voltage_Battery;
    --  float BrickPi3::get_voltage_battery(){
    --    float voltage;
@@ -930,7 +943,7 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "set_motor_position unimplemented");
       return
-        raise Program_Error with "Unimplemented function set_motor_position";
+      raise Program_Error with "Unimplemented function set_motor_position";
    end set_motor_position;
    --  int BrickPi3::set_motor_position(uint8_t port, int32_t position){
    --    spi_array_out[0] = Address;
@@ -955,8 +968,8 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "set_motor_position_relative unimplemented");
       return
-        raise Program_Error
-          with "Unimplemented function set_motor_position_relative";
+      raise Program_Error
+        with "Unimplemented function set_motor_position_relative";
    end set_motor_position_relative;
    --  int BrickPi3::set_motor_position_relative(uint8_t port, int32_t position){
    --    for(uint8_t p = 1; p <= PORT_D; p <<= 1){
@@ -1010,7 +1023,7 @@ package body BrickPi3 is
       pragma
         Compile_Time_Warning (Standard.True, "set_motor_limits unimplemented");
       return
-        raise Program_Error with "Unimplemented function set_motor_limits";
+      raise Program_Error with "Unimplemented function set_motor_limits";
    end set_motor_limits;
          --  int BrickPi3::set_motor_limits(uint8_t port, uint8_t power, uint16_t dps){
    --    spi_array_out[0] = Address;
@@ -1038,7 +1051,7 @@ package body BrickPi3 is
       pragma
         Compile_Time_Warning (Standard.True, "get_motor_status unimplemented");
       return
-        raise Program_Error with "Unimplemented function get_motor_status";
+      raise Program_Error with "Unimplemented function get_motor_status";
    end get_motor_status;
       --  int BrickPi3::get_motor_status(uint8_t port, uint8_t &state, int8_t &power, int32_t &position, int16_t &dps){
    --    uint8_t msg_type;
@@ -1090,7 +1103,7 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "offset_motor_encoder unimplemented");
       return
-        raise Program_Error with "Unimplemented function offset_motor_encoder";
+      raise Program_Error with "Unimplemented function offset_motor_encoder";
    end offset_motor_encoder;
    --  int BrickPi3::offset_motor_encoder(uint8_t port, int32_t position){
    --    spi_array_out[0] = Address;
@@ -1114,7 +1127,7 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "reset_motor_encoder unimplemented");
       return
-        raise Program_Error with "Unimplemented function reset_motor_encoder";
+      raise Program_Error with "Unimplemented function reset_motor_encoder";
    end reset_motor_encoder;
    --  int BrickPi3::reset_motor_encoder(uint8_t port){
    --    int32_t value;
@@ -1146,7 +1159,7 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "reset_motor_encoder unimplemented");
       return
-        raise Program_Error with "Unimplemented function reset_motor_encoder";
+      raise Program_Error with "Unimplemented function reset_motor_encoder";
    end reset_motor_encoder;
    --  int BrickPi3::reset_motor_encoder(uint8_t port, int32_t &value){
    --    value = 0;
@@ -1170,7 +1183,7 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "set_motor_encoder unimplemented");
       return
-        raise Program_Error with "Unimplemented function set_motor_encoder";
+      raise Program_Error with "Unimplemented function set_motor_encoder";
    end set_motor_encoder;
    --  int BrickPi3::set_motor_encoder(uint8_t port, int32_t value){
    --    int32_t enc_value = 0;
@@ -1200,7 +1213,7 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "get_motor_encoder unimplemented");
       return
-        raise Program_Error with "Unimplemented function get_motor_encoder";
+      raise Program_Error with "Unimplemented function get_motor_encoder";
    end get_motor_encoder;
 
    --  int BrickPi3::get_motor_encoder(uint8_t port, int32_t &value){

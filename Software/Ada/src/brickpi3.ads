@@ -1,3 +1,4 @@
+with Ada.Finalization;
 with Ada.Streams;
 with System;
 with Interfaces;
@@ -167,9 +168,9 @@ package BrickPi3 is
       distance  : anon_array3086;
       heading   : anon_array3086;
       remote    : anon_array3088;
-   end record
-   with Convention => C_Pass_By_Copy;
-   type BrickPi3 is tagged private;
+   end record;
+
+   type BrickPi3 is new Ada.Finalization.Limited_Controlled with private;
 
    function Detect (Self : BrickPi3) return Boolean;
    -- Confirm that the BrickPi3 is connected and up-to-date
@@ -311,8 +312,9 @@ package BrickPi3 is
 
 private
 
-   type BrickPi3 is tagged record
+   type BrickPi3 is new Ada.Finalization.Limited_Controlled with record
       null;
    end record;
-
+   procedure Initialize (this : in out BrickPi3);
+   procedure Finalize   (this : in out BrickPi3);
 end BrickPi3;
