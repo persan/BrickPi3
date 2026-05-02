@@ -30,7 +30,7 @@ class Console_Process(GPS.Console, GPS.Process):
 @interactive("Editor",
              menu="/Edit/Foo",
              toolbar="main",
-             name="BrickCompile",
+             name="Brick_Compile",
              description="Does a remote comiliation on the brick")
 def compile_on_brick():
     Console_Process(["git", "commit", "-m", "Working", "-a"])
