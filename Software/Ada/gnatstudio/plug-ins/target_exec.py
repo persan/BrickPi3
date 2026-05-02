@@ -21,6 +21,9 @@ class Console_Process(GPS.Console, GPS.Process):
             on_input=Console_Process.on_input,
             on_destroy=Console_Process.on_destroy,
             force=False)
+        self.write(">>")
+        self.write(" ".join(command))
+        self.write("\n")
         GPS.Process.__init__(
             self, command, ".+",
             on_exit=Console_Process.on_exit,
