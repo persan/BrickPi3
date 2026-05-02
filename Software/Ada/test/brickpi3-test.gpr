@@ -8,4 +8,10 @@ project Brickpi3.Test is
    for Exec_Dir use "bin";
    for Main use project'Main & ("brickpi3-test-simple-main.ads");
 
-end brickpi3.Test;
+
+   package  Test is
+      for Remote_Machine use ("brickpi");
+      for Remote_Dir use ("BrickPi3/Software/Ada/test");
+   end  Test;
+
+end Brickpi3.Test;
