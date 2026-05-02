@@ -20,7 +20,7 @@ class Console_Process(GPS.Console, GPS.Process):
             self, "Remote",
             on_input=Console_Process.on_input,
             on_destroy=Console_Process.on_destroy,
-            force=True)
+            force=False)
         GPS.Process.__init__(
             self, command, ".+",
             on_exit=Console_Process.on_exit,
