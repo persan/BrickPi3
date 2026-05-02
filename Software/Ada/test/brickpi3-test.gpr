@@ -9,9 +9,9 @@ project Brickpi3.Test is
    for Main use project'Main & ("brickpi3-test-simple-main.ads");
 
 
-   package  Test is
+   package  Remote_Test is
       for Remote_Machine use ("brickpi");
       for Remote_Dir use ("BrickPi3/Software/Ada/test");
-   end  Test;
+   end  Remote_Test;
 
 end Brickpi3.Test;

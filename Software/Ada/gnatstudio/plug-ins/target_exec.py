@@ -31,7 +31,13 @@ class Console_Process(GPS.Console, GPS.Process):
              menu="/Edit/Foo",
              toolbar="main",
              name="Brick_Compile",
-             description="Does a remote comiliation on the brick")
+             description="Does a remote compilation on the brick")
+
 def compile_on_brick():
+    remote_machine = GPS.Project.root().get_attribute_as_string(
+                    "Remote_Machine", package="Remote_Test")
+    remote_dir = GPS.Project.root().get_attribute_as_string(
+                    "Remote_Dir", package="Remote_Test")
+
     Console_Process(["git", "commit", "-m", "Working", "-a"])
-    Console_Process(["ssh", "brickpi", "make", "-C", "BrickPi3/Software/Ada/test"])
+    Console_Process(["ssh", remote_machine, "make", "-C", remote_dir])
