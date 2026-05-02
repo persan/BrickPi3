@@ -7,10 +7,7 @@ class Console_Process(GPS.Console, GPS.Process):
         self.write(unmatched + matched)
 
     def on_exit(self, status, unmatched_output):
-        try:
-            self.destroy()
-        except:
-            pass  # Might already have been destroyed
+        pass  # Might already have been destroyed
 
     def on_input(self, input):
         self.send(input)
