@@ -14,6 +14,13 @@ def initialize_project_plugin():
 
     sys.path.insert(0, plugin_dir)
     sys.path.insert(0, lib)
+    plugins = glob.glob(join(plugin_dir, "*.xml"))
+    plugins.sort()
+    for plugin in plugins:
+        print(f"loading: {plugin}.")
+        with open(plugin) as inf:
+            GPS.parse_xml(inf.read)
+
     plugins = glob.glob(join(plugin_dir, "*.py"))
     plugins.sort()
     for plugin in plugins:

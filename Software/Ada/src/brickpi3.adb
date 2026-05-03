@@ -1,35 +1,33 @@
+pragma Warnings (Off);
+with System.CRTL;
+pragma Warnings (On);
 
 package body BrickPi3 is
-   pragma Warnings (Off);
-
-
-
+   use System.CRTL;
    Active : Boolean := False;
-   procedure Initialize (this : in out BrickPi3) is
+
+   procedure Initialize (Self : in out BrickPi3) is
    begin
       if Active then
          raise Program_Error with "Only one instance allowed";
       end if;
       Active := True;
+      Self.Spi_Setup;
    end;
-   procedure Finalize   (this : in out BrickPi3)is
+
+   procedure Finalize (Self : in out BrickPi3) is
    begin
       Active := False;
+
    end;
 
-   ---------------
-   -- get_board --
-   ---------------
-
-   function get_board (Self : BrickPi3) return String is
+   procedure Retcode_To_Exception(CODE : INTEGER ) is
    begin
-      pragma Compile_Time_Warning (Standard.True, "get_board unimplemented");
-      return raise Program_Error with "Unimplemented function get_board";
-   end get_board;
-
-
-
-
+      case CODE is
+         when 0 => return;
+         when others => raise BrickPi3_Error with Code'Image;
+      end case;
+   end Retcode_To_Exception;
 
    ------------------------------------------------------------------------------
    --  BrickPi3::BrickPi3(uint8_t addr){
@@ -48,78 +46,89 @@ package body BrickPi3 is
    ---------------
    -- spi_setup --
    ---------------
-
-   function spi_setup (this : in out BrickPi3) return Integer is
+   -- Set up SPI. Open the file, and define the configuration.
+   procedure spi_setup (Self : in out BrickPi3) is
+      spi_file_handle : Int;
    begin
-      pragma Compile_Time_Warning (Standard.True, "spi_setup unimplemented");
-      return raise Program_Error with "Unimplemented function spi_setup";
+      -- spi_file_handle := System.CRTL.Open (SPIDEV_FILE_NAME, O_RDWR);
+      --      this.spi_file_handle = open(SPIDEV_FILE_NAME, O_RDWR);
+      --
+      --      if (spi_file_handle < 0){
+      --          return ERROR_SPI_FILE;
+      --      }
+      --
+      Self.spi_xfer_struct.cs_change := 0;               -- Keep CS activated
+      Self.spi_xfer_struct.delay_usecs := 0;             -- delay in us
+      --  this.spi_xfer_struct.speed_hz := SPI_TARGET_SPEED; -- speed
+      Self.spi_xfer_struct.speed_hz := 50_000; -- speed
+      Self.spi_xfer_struct.bits_per_word := 8;           -- bites per word 8
    end spi_setup;
-   --  -- Set up SPI. Open the file, and define the configuration.
-   --  int BrickPi3::spi_setup(){
-   --      this.spi_file_handle = open(SPIDEV_FILE_NAME, O_RDWR);
-   --
-   --      if (spi_file_handle < 0){
-   --          return ERROR_SPI_FILE;
-   --      }
-   --
-   --      this.spi_xfer_struct.cs_change := 0;               -- Keep CS activated
-   --      this.spi_xfer_struct.delay_usecs := 0;             -- delay in us
-   --      this.spi_xfer_struct.speed_hz := SPI_TARGET_SPEED; -- speed
-   --      this.spi_xfer_struct.bits_per_word := 8;           -- bites per word 8
-   --
-   --      return ERROR_NONE;
-   --  }
 
    ------------------------
    -- spi_transfer_array --
    ------------------------
+   -- Transfer length number of bytes. Write from outArray, read to inArray.
    function spi_transfer_array
-     (this     : in out BrickPi3;
-      length   : Interfaces.Unsigned_8;
-      outArray : access Interfaces.Unsigned_8;
-      inArray  : access Interfaces.Unsigned_8) return Integer is
+     (Self     : in out BrickPi3;
+      outArray : out Ada.Streams.Stream_Element_Array;
+      inArray  : in Ada.Streams.Stream_Element_Array) return Integer is
    begin
+      Self.spi_xfer_struct.len := OutArray'length;
+      Self.spi_xfer_struct.tx_buf := OutArray(OutArray'First)'Unrestricted_Access;
+      Self.spi_xfer_struct.rx_buf :=
+        InArray (InArray'First)'Unrestricted_Access;
+
+      --      if (ioctl(spi_file_handle, SPI_IOC_MESSAGE(1), this.spi_xfer_struct'access) < 0) {
+      --          return ERROR_SPI_FILE;
+      --      }
+      --
+      --      return ERROR_NONE;
+      --  }
       pragma
         Compile_Time_Warning
           (Standard.True, "spi_transfer_array unimplemented");
       return
-      raise Program_Error with "Unimplemented function spi_transfer_array";
+        raise Program_Error with "Unimplemented function spi_transfer_array";
    end spi_transfer_array;
-   --  -- Transfer length number of bytes. Write from outArray, read to inArray.
-   --  int BrickPi3::spi_transfer_array(uint8_t length, uint8_t *outArray, uint8_t *inArray){
-   --      this.spi_xfer_struct.len = length;
-   --      this.spi_xfer_struct.tx_buf = (unsigned long)outArray;
-   --      this.spi_xfer_struct.rx_buf = (unsigned long)inArray;
-   --
-   --      if (ioctl(spi_file_handle, SPI_IOC_MESSAGE(1), this.spi_xfer_struct'access) < 0) {
-   --          return ERROR_SPI_FILE;
-   --      }
-   --
-   --      return ERROR_NONE;
-   --  }
+
+   procedure spi_transfer_array
+     (Self     : in out BrickPi3;
+      outArray : out Ada.Streams.Stream_Element_Array;
+      inArray  : in Ada.Streams.Stream_Element_Array) is
+   begin
+      Retcode_To_Exception (Self.Spi_Transfer_Array (OutArray, InArray));
+   end spi_transfer_array;
 
    -----------------
    -- spi_write_8 --
    -----------------
    function spi_write_8
-     (this     : in out BrickPi3;
-      msg_type : Interfaces.Unsigned_8;
+     (Self     : in out BrickPi3;
+      msg_type : MESSAGE_TYPE;
       value    : Interfaces.Unsigned_8) return Integer is
    begin
       pragma Compile_Time_Warning (Standard.True, "spi_write_8 unimplemented");
       return raise Program_Error with "Unimplemented function spi_write_8";
    end spi_write_8;
-   --  int BrickPi3::spi_write_8(uint8_t msg_type, uint8_t value){
-   --    spi_array_out[0] = Address;
-   --    spi_array_out[1] = msg_type;
-   --    spi_array_out[2] = (value & 0xFF);
+
+   procedure spi_write_8
+     (Self     : in out BrickPi3;
+      msg_type : MESSAGE_TYPE;
+      value    : Interfaces.Unsigned_8) is
+   begin
+      null;
+   end;
+   --  int BrickPi3::spi_write_8(uint8_t msg_type, uint8_t value)
+   --    spi_array_out[0] := Address;
+   --    spi_array_out[1] := msg_type;
+   --    spi_array_out[2] := value;
    --    return spi_transfer_array(3, spi_array_out, spi_array_in);
    --  }
 
    -----------------
    -- fatal_error --
    -----------------
-   procedure fatal_error (this : in out BrickPi3; error : String) is
+   procedure fatal_error (Self : in out BrickPi3; error : String) is
    begin
       pragma Compile_Time_Warning (Standard.True, "fatal_error unimplemented");
       raise Program_Error with "Unimplemented procedure fatal_error";
@@ -134,13 +143,13 @@ package body BrickPi3 is
    -- BrickPi3_set_address --
    --------------------------
    function BrickPi3_set_address
-     (this : in out BrickPi3; addr : Integer; id : String) return Integer is
+     (Self : in out BrickPi3; addr : Integer; id : String) return Integer is
    begin
       pragma
         Compile_Time_Warning
           (Standard.True, "BrickPi3_set_address unimplemented");
       return
-      raise Program_Error with "Unimplemented function BrickPi3_set_address";
+        raise Program_Error with "Unimplemented function BrickPi3_set_address";
    end BrickPi3_set_address;
    --  -- Set a BrickPi3's address to allow stacking
    --  int BrickPi3::BrickPi3_set_address(int addr, const char *id){
@@ -173,8 +182,8 @@ package body BrickPi3 is
    -- spi_read_16 --
    -----------------
    function spi_read_16
-     (this     : in out BrickPi3;
-      msg_type : Interfaces.Unsigned_8;
+     (Self     : in out BrickPi3;
+      msg_type : MESSAGE_TYPE;
       value    : access Interfaces.Unsigned_16) return Integer is
    begin
       pragma Compile_Time_Warning (Standard.True, "spi_read_16 unimplemented");
@@ -199,8 +208,8 @@ package body BrickPi3 is
    -- spi_read_32 --
    -----------------
    function spi_read_32
-     (this     : in out BrickPi3;
-      msg_type : Interfaces.Unsigned_8;
+     (Self     : in out BrickPi3;
+      msg_type : MESSAGE_TYPE;
       value    : access Interfaces.Unsigned_32) return Integer is
    begin
       pragma Compile_Time_Warning (Standard.True, "spi_read_32 unimplemented");
@@ -225,8 +234,8 @@ package body BrickPi3 is
    -- spi_read_string --
    ---------------------
    function spi_read_string
-     (this     : in out BrickPi3;
-      msg_type : Interfaces.Unsigned_8;
+     (Self     : in out BrickPi3;
+      msg_type : MESSAGE_TYPE;
       str      : String;
       chars    : Interfaces.Unsigned_8) return Integer is
    begin
@@ -234,21 +243,30 @@ package body BrickPi3 is
         Compile_Time_Warning (Standard.True, "spi_read_string unimplemented");
       return raise Program_Error with "Unimplemented function spi_read_string";
    end spi_read_string;
+
+   function spi_read_string
+     (Self : in out BrickPi3; Msg_Type : MESSAGE_TYPE) return String is
+   begin
+      pragma
+        Compile_Time_Warning (Standard.True, "spi_read_string unimplemented");
+      return raise Program_Error with "Unimplemented function spi_read_string";
+   end;
+
    --  int BrickPi3::spi_read_string(uint8_t msg_type, char *str, uint8_t chars){
    --    if((chars + 4) > LONGEST_SPI_TRANSFER){
    --      return -3;
    --    }
-   --    spi_array_out[0] = Address;
-   --    spi_array_out[1] = msg_type;
+   --    this.spi_array_out[0] = Address;
+   --    this.spi_array_out[1] = msg_type;
    --    -- assign error to the value returned by spi_transfer_array, and if not 0:
    --    if(int error = spi_transfer_array(chars + 4, spi_array_out, spi_array_in)){
    --      return error;
    --    }
-   --    if(spi_array_in[3] != 0xA5){
+   --    if(this.spi_array_in[3] != 0xA5){
    --      return ERROR_SPI_RESPONSE;
    --    }
    --    for(uint8_t i = 0; i < chars; i++){
-   --      str[i] = spi_array_in[i + 4];
+   --      str[i] = this.spi_array_in[i + 4];
    --    }
    --    return ERROR_NONE;
    --  }
@@ -256,7 +274,7 @@ package body BrickPi3 is
    ------------
    -- Detect --
    ------------
-   function Detect (Self : BrickPi3) return Boolean is
+   function Detect (Self : in out BrickPi3) return Boolean is
    begin
       pragma Compile_Time_Warning (Standard.True, "Detect unimplemented");
       return raise Program_Error with "Unimplemented function Detect";
@@ -307,7 +325,7 @@ package body BrickPi3 is
    --    }
    --    if(strstr(str, FIRMWARE_VERSION_REQUIRED) != str){
    --      if(critical){
-   --        sprintf(ErrorStr, "detect error: BrickPi3 firmware needs to be version %sx but is currently version %s", FIRMWARE_VERSION_REQUIRED, str);
+   --        sprintf(ErrorStr, "detect error: in out BrickPi3 firmware needs to be version %sx but is currently version %s", FIRMWARE_VERSION_REQUIRED, str);
    --        fatal_error(ErrorStr);
    --      }else{
    --        return ERROR_FIRMWARE_MISMATCH;
@@ -319,32 +337,32 @@ package body BrickPi3 is
    ----------------------
    -- get_manufacturer --
    ----------------------
-   function get_manufacturer (Self : BrickPi3) return String is
+   function get_manufacturer (Self : in out BrickPi3) return String is
    begin
-      pragma
-        Compile_Time_Warning (Standard.True, "get_manufacturer unimplemented");
-      return
-      raise Program_Error with "Unimplemented function get_manufacturer";
+      return Self.Spi_Read_String (GET_MANUFACTURER);
    end get_manufacturer;
-   --  int BrickPi3::get_manufacturer(char *str){
-   --    return spi_read_string(BPSPI_MESSAGE_GET_MANUFACTURER, str);
-   --  }
-   --
-   --  int BrickPi3::get_board(char *str){
-   --    return spi_read_string(BPSPI_MESSAGE_GET_NAME, str);
-   --  }
+
+   ---------------
+   -- get_board --
+   ---------------
+
+   function get_board (Self : in out BrickPi3) return String is
+   begin
+      return Self.Spi_Read_String (GET_NAME);
+   end get_board;
 
    --------------------------
    -- Get_Hardware_Version --
    --------------------------
-   function Get_Hardware_Version (Self : BrickPi3) return String is
+   function Get_Hardware_Version (Self : in out BrickPi3) return String is
    begin
       pragma
         Compile_Time_Warning
           (Standard.True, "Get_Hardware_Version unimplemented");
       return
-      raise Program_Error with "Unimplemented function Get_Hardware_Version";
+        raise Program_Error with "Unimplemented function Get_Hardware_Version";
    end Get_Hardware_Version;
+
    --  int BrickPi3::get_version_hardware(char *str){
    --    uint32_t value;
    --    -- assign error to the value returned by spi_read_32, and if not 0:
@@ -358,13 +376,13 @@ package body BrickPi3 is
    --------------------------
    -- Get_firmware_Version --
    --------------------------
-   function Get_firmware_Version (Self : BrickPi3) return String is
+   function Get_firmware_Version (Self : in out BrickPi3) return String is
    begin
       pragma
         Compile_Time_Warning
           (Standard.True, "Get_firmware_Version unimplemented");
       return
-      raise Program_Error with "Unimplemented function Get_firmware_Version";
+        raise Program_Error with "Unimplemented function Get_firmware_Version";
    end Get_firmware_Version;
    --  int BrickPi3::get_version_firmware(char *str){
    --    uint32_t value;
@@ -379,7 +397,7 @@ package body BrickPi3 is
    ------------
    -- get_id --
    ------------
-   function get_id (Self : BrickPi3) return String is
+   function get_id (Self : in out BrickPi3) return String is
    begin
       pragma Compile_Time_Warning (Standard.True, "get_id unimplemented");
       return raise Program_Error with "Unimplemented function get_id";
@@ -404,19 +422,18 @@ package body BrickPi3 is
    -------------
    -- Set_LED --
    -------------
-   procedure Set_LED (Self : BrickPi3; On : Boolean := False) is
+   procedure Set_LED (Self : in out BrickPi3; On : Boolean := False) is
    begin
-      pragma Compile_Time_Warning (Standard.True, "Set_LED unimplemented");
-      raise Program_Error with "Unimplemented procedure Set_LED";
+      Self.spi_write_8 (SET_LED, Boolean'Pos (On));
    end Set_LED;
    --  int  BrickPi3::set_led(uint8_t value){
-   --    return spi_write_8(BPSPI_MESSAGE_SET_LED, value);
+   --    return
    --  }
 
    ---------------------
    -- Get_Voltage_3v3 --
    ---------------------
-   function Get_Voltage_3v3 (Self : BrickPi3) return Float is
+   function Get_Voltage_3v3 (Self : in out BrickPi3) return Float is
    begin
       pragma
         Compile_Time_Warning (Standard.True, "Get_Voltage_3v3 unimplemented");
@@ -438,7 +455,7 @@ package body BrickPi3 is
    --------------------
    -- Get_Voltage_5v --
    --------------------
-   function Get_Voltage_5v (Self : BrickPi3) return Float is
+   function Get_Voltage_5v (Self : in out BrickPi3) return Float is
    begin
       pragma
         Compile_Time_Warning (Standard.True, "Get_Voltage_5v unimplemented");
@@ -460,7 +477,7 @@ package body BrickPi3 is
    --------------------
    -- Get_Voltage_9v --
    --------------------
-   function Get_Voltage_9v (Self : BrickPi3) return Float is
+   function Get_Voltage_9v (Self : in out BrickPi3) return Float is
    begin
       pragma
         Compile_Time_Warning (Standard.True, "Get_Voltage_9v unimplemented");
@@ -483,13 +500,13 @@ package body BrickPi3 is
    -------------------------
    -- Get_Voltage_Battery --
    -------------------------
-   function Get_Voltage_Battery (Self : BrickPi3) return Float is
+   function Get_Voltage_Battery (Self : in out BrickPi3) return Float is
    begin
       pragma
         Compile_Time_Warning
           (Standard.True, "Get_Voltage_Battery unimplemented");
       return
-      raise Program_Error with "Unimplemented function Get_Voltage_Battery";
+        raise Program_Error with "Unimplemented function Get_Voltage_Battery";
    end Get_Voltage_Battery;
    --  float BrickPi3::get_voltage_battery(){
    --    float voltage;
@@ -509,7 +526,7 @@ package body BrickPi3 is
    -- set_sensor_type --
    ---------------------
    function set_sensor_type
-     (this       : in out BrickPi3;
+     (Self       : in out BrickPi3;
       port       : Interfaces.Unsigned_8;
       c_type     : Interfaces.Unsigned_8;
       flags      : Interfaces.Unsigned_16;
@@ -573,7 +590,7 @@ package body BrickPi3 is
    -- transact_i2c --
    ------------------
    function transact_i2c
-     (this       : in out BrickPi3;
+     (Self       : in out BrickPi3;
       port       : Interfaces.Unsigned_8;
       i2c_struct : access i2c_struct_t) return Integer is
    begin
@@ -630,7 +647,7 @@ package body BrickPi3 is
    -- get_sensor --
    ----------------
    function get_sensor
-     (this      : in out BrickPi3;
+     (Self      : in out BrickPi3;
       port      : Interfaces.Unsigned_8;
       value_ptr : System.Address) return Integer is
    begin
@@ -882,7 +899,7 @@ package body BrickPi3 is
    -- set_motor_power --
    ---------------------
    function set_motor_power
-     (this  : in out BrickPi3;
+     (Self  : in out BrickPi3;
       port  : Interfaces.Unsigned_8;
       power : Interfaces.Integer_8) return Integer is
    begin
@@ -902,7 +919,7 @@ package body BrickPi3 is
    -- set_motor_position --
    ------------------------
    function set_motor_position
-     (this     : in out BrickPi3;
+     (Self     : in out BrickPi3;
       port     : Interfaces.Unsigned_8;
       position : Interfaces.Integer_32) return Integer is
    begin
@@ -910,7 +927,7 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "set_motor_position unimplemented");
       return
-      raise Program_Error with "Unimplemented function set_motor_position";
+        raise Program_Error with "Unimplemented function set_motor_position";
    end set_motor_position;
    --  int BrickPi3::set_motor_position(uint8_t port, int32_t position){
    --    spi_array_out[0] = Address;
@@ -927,7 +944,7 @@ package body BrickPi3 is
    -- set_motor_position_relative --
    ---------------------------------
    function set_motor_position_relative
-     (this     : in out BrickPi3;
+     (Self     : in out BrickPi3;
       port     : Interfaces.Unsigned_8;
       position : Interfaces.Integer_32) return Integer is
    begin
@@ -935,8 +952,8 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "set_motor_position_relative unimplemented");
       return
-      raise Program_Error
-        with "Unimplemented function set_motor_position_relative";
+        raise Program_Error
+          with "Unimplemented function set_motor_position_relative";
    end set_motor_position_relative;
    --  int BrickPi3::set_motor_position_relative(uint8_t port, int32_t position){
    --    for(uint8_t p = 1; p <= PORT_D; p <<= 1){
@@ -955,12 +972,11 @@ package body BrickPi3 is
    --    return ERROR_NONE;
    --  }
 
-
    -------------------
    -- set_motor_dps --
    -------------------
    function set_motor_dps
-     (this : in out BrickPi3;
+     (Self : in out BrickPi3;
       port : Interfaces.Unsigned_8;
       dps  : Interfaces.Integer_16) return Integer is
    begin
@@ -977,12 +993,11 @@ package body BrickPi3 is
    --    return spi_transfer_array(5, spi_array_out, spi_array_in);
    --  }
 
-
    ----------------------
    -- set_motor_limits --
    ----------------------
    function set_motor_limits
-     (this  : in out BrickPi3;
+     (Self  : in out BrickPi3;
       port  : Interfaces.Unsigned_8;
       power : Interfaces.Unsigned_8;
       dps   : Interfaces.Unsigned_16) return Integer is
@@ -990,9 +1005,9 @@ package body BrickPi3 is
       pragma
         Compile_Time_Warning (Standard.True, "set_motor_limits unimplemented");
       return
-      raise Program_Error with "Unimplemented function set_motor_limits";
+        raise Program_Error with "Unimplemented function set_motor_limits";
    end set_motor_limits;
-         --  int BrickPi3::set_motor_limits(uint8_t port, uint8_t power, uint16_t dps){
+   --  int BrickPi3::set_motor_limits(uint8_t port, uint8_t power, uint16_t dps){
    --    spi_array_out[0] = Address;
    --    spi_array_out[1] = BPSPI_MESSAGE_SET_MOTOR_LIMITS;
    --    spi_array_out[2] = port;
@@ -1002,13 +1017,11 @@ package body BrickPi3 is
    --    return spi_transfer_array(6, spi_array_out, spi_array_in);
    --  }
 
-
-
    ----------------------
    -- get_motor_status --
    ----------------------
    function get_motor_status
-     (this     : in out BrickPi3;
+     (Self     : in out BrickPi3;
       port     : Interfaces.Unsigned_8;
       state    : access Interfaces.Unsigned_8;
       power    : access Interfaces.Integer_8;
@@ -1018,9 +1031,9 @@ package body BrickPi3 is
       pragma
         Compile_Time_Warning (Standard.True, "get_motor_status unimplemented");
       return
-      raise Program_Error with "Unimplemented function get_motor_status";
+        raise Program_Error with "Unimplemented function get_motor_status";
    end get_motor_status;
-      --  int BrickPi3::get_motor_status(uint8_t port, uint8_t &state, int8_t &power, int32_t &position, int16_t &dps){
+   --  int BrickPi3::get_motor_status(uint8_t port, uint8_t &state, int8_t &power, int32_t &position, int16_t &dps){
    --    uint8_t msg_type;
    --    switch(port){
    --      case PORT_A:
@@ -1057,12 +1070,11 @@ package body BrickPi3 is
    --    return ERROR_NONE;
    --  }
 
-
    --------------------------
    -- offset_motor_encoder --
    --------------------------
    function offset_motor_encoder
-     (this     : in out BrickPi3;
+     (Self     : in out BrickPi3;
       port     : Interfaces.Unsigned_8;
       position : Interfaces.Integer_32) return Integer is
    begin
@@ -1070,7 +1082,7 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "offset_motor_encoder unimplemented");
       return
-      raise Program_Error with "Unimplemented function offset_motor_encoder";
+        raise Program_Error with "Unimplemented function offset_motor_encoder";
    end offset_motor_encoder;
    --  int BrickPi3::offset_motor_encoder(uint8_t port, int32_t position){
    --    spi_array_out[0] = Address;
@@ -1083,18 +1095,17 @@ package body BrickPi3 is
    --    return spi_transfer_array(7, spi_array_out, spi_array_in);
    --  }
 
-
    -------------------------
    -- reset_motor_encoder --
    -------------------------
    function reset_motor_encoder
-     (this : in out BrickPi3; port : Interfaces.Unsigned_8) return Integer is
+     (Self : in out BrickPi3; port : Interfaces.Unsigned_8) return Integer is
    begin
       pragma
         Compile_Time_Warning
           (Standard.True, "reset_motor_encoder unimplemented");
       return
-      raise Program_Error with "Unimplemented function reset_motor_encoder";
+        raise Program_Error with "Unimplemented function reset_motor_encoder";
    end reset_motor_encoder;
    --  int BrickPi3::reset_motor_encoder(uint8_t port){
    --    int32_t value;
@@ -1113,12 +1124,11 @@ package body BrickPi3 is
    --    return ERROR_NONE;
    --  }
 
-
    -------------------------
    -- reset_motor_encoder --
    -------------------------
    function reset_motor_encoder
-     (this  : in out BrickPi3;
+     (Self  : in out BrickPi3;
       port  : Interfaces.Unsigned_8;
       value : access Interfaces.Integer_32) return Integer is
    begin
@@ -1126,7 +1136,7 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "reset_motor_encoder unimplemented");
       return
-      raise Program_Error with "Unimplemented function reset_motor_encoder";
+        raise Program_Error with "Unimplemented function reset_motor_encoder";
    end reset_motor_encoder;
    --  int BrickPi3::reset_motor_encoder(uint8_t port, int32_t &value){
    --    value = 0;
@@ -1137,12 +1147,11 @@ package body BrickPi3 is
    --    return offset_motor_encoder(port, value);
    --  }
 
-
    -----------------------
    -- set_motor_encoder --
    -----------------------
    function set_motor_encoder
-     (this  : in out BrickPi3;
+     (Self  : in out BrickPi3;
       port  : Interfaces.Unsigned_8;
       value : Interfaces.Integer_32) return Integer is
    begin
@@ -1150,7 +1159,7 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "set_motor_encoder unimplemented");
       return
-      raise Program_Error with "Unimplemented function set_motor_encoder";
+        raise Program_Error with "Unimplemented function set_motor_encoder";
    end set_motor_encoder;
    --  int BrickPi3::set_motor_encoder(uint8_t port, int32_t value){
    --    int32_t enc_value = 0;
@@ -1167,12 +1176,11 @@ package body BrickPi3 is
    --    return value;
    --  }
 
-
    -----------------------
    -- get_motor_encoder --
    -----------------------
    function get_motor_encoder
-     (this  : in out BrickPi3;
+     (Self  : in out BrickPi3;
       port  : Interfaces.Unsigned_8;
       value : access Interfaces.Integer_32) return Integer is
    begin
@@ -1180,7 +1188,7 @@ package body BrickPi3 is
         Compile_Time_Warning
           (Standard.True, "get_motor_encoder unimplemented");
       return
-      raise Program_Error with "Unimplemented function get_motor_encoder";
+        raise Program_Error with "Unimplemented function get_motor_encoder";
    end get_motor_encoder;
 
    --  int BrickPi3::get_motor_encoder(uint8_t port, int32_t &value){
@@ -1207,11 +1215,10 @@ package body BrickPi3 is
    --    return res;
    --  }
 
-
-    ---------------
+   ---------------
    -- reset_all --
    ---------------
-   function reset_all (this : in out BrickPi3) return Integer is
+   function reset_all (Self : in out BrickPi3) return Integer is
    begin
       pragma Compile_Time_Warning (Standard.True, "reset_all unimplemented");
       return raise Program_Error with "Unimplemented function reset_all";

@@ -26,7 +26,7 @@ package BrickPi3 is
    REMOTE_BIT_BLUE_DOWN : constant := 16#08#;
    REMOTE_BIT_BROADCAST : constant := 16#10#;
 
-   type BPSPI_MESSAGE_TYPE is
+   type MESSAGE_TYPE is
      (NONE,
       GET_MANUFACTURER,
       GET_NAME,
@@ -112,7 +112,7 @@ package BrickPi3 is
    PIN_5_DIR     : constant SENSOR_CONFIG_FLAGS := 2#0000_0000_0001_0000#;
    PIN_5_STATE   : constant SENSOR_CONFIG_FLAGS := 2#0000_0000_0010_0000#;
    PIN_6_DIR     : constant SENSOR_CONFIG_FLAGS := 2#0000_0001_0000_0000#;
-   PIN_6_STATE   : constant SENSOR_CONFIG_FLAGS := 2#0000_0010_0010_0000#;
+   PIN_6_STATE   : constant SENSOR_CONFIG_FLAGS := 2#0000_0010_0000_0000#;
 
    REPORT_1_ADC : constant SENSOR_CONFIG_FLAGS := 4096;
    REPORT_6_ADC : constant SENSOR_CONFIG_FLAGS := 16384;
@@ -173,78 +173,78 @@ package BrickPi3 is
 
    type BrickPi3 is new Ada.Finalization.Limited_Controlled with private;
 
-   function Detect (Self : BrickPi3) return Boolean;
+   function Detect (Self : in out BrickPi3) return Boolean;
    -- Confirm that the BrickPi3 is connected and up-to-date
 
-   function get_manufacturer (Self : BrickPi3) return String;
+   function get_manufacturer (Self : in out BrickPi3) return String;
    --  Get the manufacturer (should be "Dexter Industries")
 
-   function get_board (Self : BrickPi3) return String;
+   function get_board (Self : in out BrickPi3) return String;
    --  Get the board name (should be "BrickPi3")
 
-   function Get_Hardware_Version (Self : BrickPi3) return String;
+   function Get_Hardware_Version (Self : in out BrickPi3) return String;
    --  Get the hardware version number
 
-   function Get_firmware_Version (Self : BrickPi3) return String;
+   function Get_firmware_Version (Self : in out BrickPi3) return String;
    --  Get the firmware version number
 
-   function get_id (Self : BrickPi3) return String;
+   function get_id (Self : in out BrickPi3) return String;
    --  Get the serial number ID that is unique to each BrickPi3
 
-   procedure Set_LED (Self : BrickPi3; On : Boolean := False);
+   procedure Set_LED (Self : in out BrickPi3; On : Boolean := False);
    --  Control the LED
 
-   function Get_Voltage_3v3 (Self : BrickPi3) return Float;
-   function Get_Voltage_5v (Self : BrickPi3) return Float;
-   function Get_Voltage_9v (Self : BrickPi3) return Float;
-   function Get_Voltage_Battery (Self : BrickPi3) return Float;
+   function Get_Voltage_3v3 (Self : in out BrickPi3) return Float;
+   function Get_Voltage_5v (Self : in out BrickPi3) return Float;
+   function Get_Voltage_9v (Self : in out BrickPi3) return Float;
+   function Get_Voltage_Battery (Self : in out BrickPi3) return Float;
    --  Get the voltage and return as floating point voltage
 
    function set_sensor_type
-     (this       : in out BrickPi3;
+     (Self       : in out BrickPi3;
       port       : Interfaces.Unsigned_8;
       c_type     : Interfaces.Unsigned_8;
       flags      : Interfaces.Unsigned_16;
       i2c_struct : access i2c_struct_t) return Integer;
 
    function transact_i2c
-     (this       : in out BrickPi3;
+     (Self       : in out BrickPi3;
       port       : Interfaces.Unsigned_8;
       i2c_struct : access i2c_struct_t) return Integer;
 
    function get_sensor
-     (this      : in out BrickPi3;
+     (Self      : in out BrickPi3;
       port      : Interfaces.Unsigned_8;
       value_ptr : System.Address) return Integer;
 
    function set_motor_power
-     (this  : in out BrickPi3;
+     (Self  : in out BrickPi3;
       port  : Interfaces.Unsigned_8;
       power : Interfaces.Integer_8) return Integer;
 
    function set_motor_position
-     (this     : in out BrickPi3;
+     (Self     : in out BrickPi3;
       port     : Interfaces.Unsigned_8;
       position : Interfaces.Integer_32) return Integer;
 
    function set_motor_position_relative
-     (this     : in out BrickPi3;
+     (Self     : in out BrickPi3;
       port     : Interfaces.Unsigned_8;
       position : Interfaces.Integer_32) return Integer;
 
    function set_motor_dps
-     (this : in out BrickPi3;
+     (Self : in out BrickPi3;
       port : Interfaces.Unsigned_8;
       dps  : Interfaces.Integer_16) return Integer;
 
    function set_motor_limits
-     (this  : in out BrickPi3;
+     (Self  : in out BrickPi3;
       port  : Interfaces.Unsigned_8;
       power : Interfaces.Unsigned_8;
       dps   : Interfaces.Unsigned_16) return Integer;
 
    function get_motor_status
-     (this     : in out BrickPi3;
+     (Self     : in out BrickPi3;
       port     : Interfaces.Unsigned_8;
       state    : access Interfaces.Unsigned_8;
       power    : access Interfaces.Integer_8;
@@ -252,69 +252,77 @@ package BrickPi3 is
       dps      : access Interfaces.Integer_16) return Integer;
 
    function offset_motor_encoder
-     (this     : in out BrickPi3;
+     (Self     : in out BrickPi3;
       port     : Interfaces.Unsigned_8;
       position : Interfaces.Integer_32) return Integer;
 
    function reset_motor_encoder
-     (this  : in out BrickPi3;
+     (Self  : in out BrickPi3;
       port  : Interfaces.Unsigned_8;
       value : access Interfaces.Integer_32) return Integer;
 
    function reset_motor_encoder
-     (this : in out BrickPi3; port : Interfaces.Unsigned_8) return Integer;
+     (Self : in out BrickPi3; port : Interfaces.Unsigned_8) return Integer;
 
    function set_motor_encoder
-     (this  : in out BrickPi3;
+     (Self  : in out BrickPi3;
       port  : Interfaces.Unsigned_8;
       value : Interfaces.Integer_32) return Integer;
 
    function get_motor_encoder
-     (this  : in out BrickPi3;
+     (Self  : in out BrickPi3;
       port  : Interfaces.Unsigned_8;
       value : access Interfaces.Integer_32) return Integer;
 
-   function reset_all (this : in out BrickPi3) return Integer;
+   function reset_all (Self : in out BrickPi3) return Integer;
 
-   function spi_setup (this : in out BrickPi3) return Integer;
-
+   procedure spi_setup (Self : in out BrickPi3);
+   SPI_MAX_TRASFER_LENGTGH : constant := 16;
    function spi_transfer_array
-     (this     : in out BrickPi3;
-      length   : Interfaces.Unsigned_8;
-      outArray : access Interfaces.Unsigned_8;
-      inArray  : access Interfaces.Unsigned_8) return Integer;
+     (Self     : in out BrickPi3;
+      outArray : out Ada.Streams.Stream_Element_Array;
+      inArray  : in Ada.Streams.Stream_Element_Array) return Integer with
+     Pre =>
+       (OutArray'Length = InArray'Length)
+       and OutArray'Length <= SPI_MAX_TRASFER_LENGTGH;
 
    function BrickPi3_set_address
-     (this : in out BrickPi3; addr : Integer; id : String) return Integer;
+     (Self : in out BrickPi3; addr : Integer; id : String) return Integer;
 
-   procedure fatal_error (this : in out BrickPi3; error : String);
+   procedure fatal_error (Self : in out BrickPi3; error : String);
 
    function spi_write_8
-     (this     : in out BrickPi3;
-      msg_type : Interfaces.Unsigned_8;
+     (Self     : in out BrickPi3;
+      msg_type : MESSAGE_TYPE;
       value    : Interfaces.Unsigned_8) return Integer;
+   procedure spi_write_8
+     (Self     : in out BrickPi3;
+      msg_type : MESSAGE_TYPE;
+      value    : Interfaces.Unsigned_8);
 
    function spi_read_16
-     (this     : in out BrickPi3;
-      msg_type : Interfaces.Unsigned_8;
+     (Self     : in out BrickPi3;
+      msg_type : MESSAGE_TYPE;
       value    : access Interfaces.Unsigned_16) return Integer;
 
    function spi_read_32
-     (this     : in out BrickPi3;
-      msg_type : Interfaces.Unsigned_8;
+     (Self     : in out BrickPi3;
+      msg_type : MESSAGE_TYPE;
       value    : access Interfaces.Unsigned_32) return Integer;
 
    function spi_read_string
-     (this     : in out BrickPi3;
-      msg_type : Interfaces.Unsigned_8;
+     (Self     : in out BrickPi3;
+      msg_type : MESSAGE_TYPE;
       str      : String;
       chars    : Interfaces.Unsigned_8) return Integer;
 
+   function spi_read_string
+     (Self : in out BrickPi3; Msg_Type : MESSAGE_TYPE) return String;
+   BrickPi3_Error : exception;
 private
    package linux_spi_spidev_h is
 
-      SPI_IOC_MAGIC : aliased constant Character :=
-        'k';  --  /usr/include/linux/spi/spidev.h:32
+      SPI_IOC_MAGIC : aliased constant Character := 'k';
       --  arg-macro: function SPI_MSGSIZE (N)
       --    return (((N)*(sizeof (struct spi_ioc_transfer))) < (2 ** _IOC_SIZEBITS)) ? ((N)*(sizeof (struct spi_ioc_transfer))) : 0;
       --  arg-macro: procedure SPI_IOC_MESSAGE (N)
@@ -330,8 +338,8 @@ private
       --  unsupported macro: SPI_IOC_RD_MODE32 _IOR(SPI_IOC_MAGIC, 5, __u32)
       --  unsupported macro: SPI_IOC_WR_MODE32 _IOW(SPI_IOC_MAGIC, 5, __u32)
       type spi_ioc_transfer is record
-         tx_buf           : aliased Interfaces.Unsigned_64 := 0;
-         rx_buf           : aliased Interfaces.Unsigned_64 := 0;
+         tx_buf           : access Ada.Streams.Stream_Element;
+         rx_buf           : access Ada.Streams.Stream_Element;
          len              : aliased Interfaces.Unsigned_32 := 0;
          speed_hz         : aliased Interfaces.Unsigned_32 := 0;
          delay_usecs      : aliased Interfaces.Unsigned_16 := 0;
@@ -347,7 +355,8 @@ private
    end linux_spi_spidev_h;
    type BrickPi3 is new Ada.Finalization.Limited_Controlled with record
       Spi_Xfer_Struct : Linux_Spi_Spidev_H.spi_ioc_transfer;
+
    end record;
-   procedure Initialize (this : in out BrickPi3);
-   procedure Finalize (this : in out BrickPi3);
+   procedure Initialize (Self : in out BrickPi3);
+   procedure Finalize (Self : in out BrickPi3);
 end BrickPi3;
